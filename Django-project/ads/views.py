@@ -12,7 +12,8 @@ def new_vehicle_ad(request):
         
         object_storage.put(
             path=request.FILES['image'].name,
-            file=request.FILES['image']
+            file=request.FILES['image'].read(),
+            hash_path=True
         )
 
         return HttpResponse(status=200)

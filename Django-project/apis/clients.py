@@ -1,9 +1,13 @@
+from typing import Type
+from hashlib import sha256
+
 import boto3
 import botocore
 import logging
-from typing import Type
 
 from django.conf import settings
+from django.utils import timezone
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +27,21 @@ class _ObjectStorageClient:
             logger.warning(e)
             raise e
 
-    def put(self, path: str, file: bytes, acl: str = settings.AWS_DEFAULT_ACL) -> str:
+    def put(
+            self, 
+            path: str, 
+            file: bytes, 
+            acl: str = settings.AWS_DEFAULT_ACL, 
+            hash_path: bool=False
+        ) -> str:
+        
         if file is None:
             raise ValueError("file must be provided")
 
         try:
+            if hash_path:
+                path = self.__hash_path(path)
+
             self._resource.Bucket(self._bucket).put_object(
                 ACL=acl,
                 Body=file,
@@ -57,6 +71,12 @@ class _ObjectStorageClient:
         except botocore.exceptions.ClientError as e:
             logger.critical(e)
             return False
+    
+    def __hash_path(self, path: str) -> str:
+        fname, ftype = path.rsplit('.')
+        fname_hash = sha256(f'{timezone.now()}_{fname}'.encode('utf-8')).hexdigest()
+        return fname_hash + f'.{ftype}'
+
 
 
 ObjectStorage = Type[_ObjectStorageClient]

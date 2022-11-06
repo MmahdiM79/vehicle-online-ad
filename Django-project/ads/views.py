@@ -1,9 +1,12 @@
 from django.http.response import HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
 from apis.clients import object_storage
 
 # Create your views here.
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def new_vehicle_ad(request):
     try:

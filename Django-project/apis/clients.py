@@ -4,6 +4,7 @@ from hashlib import sha256
 import boto3
 import botocore
 import logging
+import pika
 
 from django.conf import settings
 from django.utils import timezone
@@ -78,12 +79,42 @@ class _ObjectStorageClient:
         return fname_hash + f'.{ftype}'
 
 
+class _RabbitMQClient:
+    def __init__(self, amqp_url: str, queue_name: str) -> None:
+        self._amqp_url = amqp_url
+        self._connection = pika.BlockingConnection(pika.URLParameters(amqp_url))
+        
+        self._channel = self._connection.channel()
+        self._queue_name = queue_name
+        self._channel.queue_declare(queue=self._queue_name)
+        
+    def put(self, data: str) -> None:
+        self._channel.basic_publish(
+            exchange='',
+            routing_key=self._queue_name,
+            body=data
+        )
+    
+    def pop(self) -> str:
+        method_frame, header_frame, body = self._channel.basic_get(queue=self._queue_name)
+        if method_frame:
+            self._channel.basic_ack(method_frame.delivery_tag)
+            return body.decode('utf-8')
+        else:
+            return ''
+
+
 
 ObjectStorage = Type[_ObjectStorageClient]
-
 object_storage = _ObjectStorageClient(
     key=settings.AWS_ACCESS_KEY_ID,
     secret=settings.AWS_SECRET_ACCESS_KEY,
     bucket=settings.AWS_STORAGE_BUCKET_NAME,
     url=settings.AWS_S3_ENDPOINT_URL
+)
+
+RabbitMQClient = Type[_RabbitMQClient]
+rabbitmq = _RabbitMQClient(
+    amqp_url=settings.RABBITMQ_AMQP_URL,
+    queue_name=settings.RABBITMQ_QUEUE_NAME
 )

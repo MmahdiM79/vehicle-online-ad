@@ -19,4 +19,4 @@ class VehicleAD(models.Model):
     email = models.CharField(max_length=2048, null=False, blank=False)
 
     def __str__(self):
-        return self.title
+        return f'< {self.pk} - {self.state} - {self.description} - {self.image} >'

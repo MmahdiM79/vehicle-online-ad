@@ -2,7 +2,11 @@ from django.http.response import HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-from apis.clients import object_storage
+from .models import VehicleAD
+from apis.clients import (
+    object_storage,
+    rabbitmq
+)
 
 # Create your views here.
 
@@ -13,11 +17,19 @@ def new_vehicle_ad(request):
         __check_keys(request)
         __check_image_file(request)
         
-        object_storage.put(
+        path = object_storage.put(
             path=request.FILES['image'].name,
             file=request.FILES['image'].read(),
             hash_path=True
         )
+        
+        new_ad = VehicleAD()
+        new_ad.image = path
+        new_ad.email = request.POST['email']
+        new_ad.description = request.POST['description']
+        new_ad.save()
+        
+        rabbitmq.put(str(new_ad.pk))
 
         return HttpResponse(status=200)
         

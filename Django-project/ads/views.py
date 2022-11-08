@@ -43,7 +43,11 @@ def __check_keys(request):
     for key in keys:
         if key not in request.POST:
             raise Exception(f"Missing key: {key}")
-      
+    
+    if '@' not in request.POST['email'] or '.' not in request.POST['email']:
+        raise Exception("Invalid email") 
+    
+
 def __check_image_file(request):
     if 'image' not in request.FILES or request.FILES['image'] is None:
         raise Exception("Missing image file")

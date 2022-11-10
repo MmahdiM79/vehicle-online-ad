@@ -17,6 +17,7 @@ class VehicleAD(models.Model):
     )
     image = models.CharField(max_length=1024, null=False, blank=False)
     email = models.CharField(max_length=2048, null=False, blank=False)
+    category = models.CharField(max_length=1024, null=True, blank=True, default=None)
 
     def __str__(self):
         return f'< {self.pk} - {self.state} - {self.description} - {self.image} >'

@@ -135,6 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ''' additional settings '''
 
+BASE_URL = env('BASE_URL')
+
 VALID_CATEGORIES = [
     'car',
     'vehicle',

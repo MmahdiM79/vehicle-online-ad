@@ -110,12 +110,13 @@ class _ImaggaClient:
         self._api_key = api_key
         self._api_secret = api_secret
 
-    def get_tags(self, image_url: str) -> dict:
+    def get_tags(self, image_url: str, threshold: float = 49) -> dict:
         response = request(
             method='GET',
             url='https://api.imagga.com/v2/tags',
             params={
                 'image_url': image_url,
+                'threshold': threshold,
             },
             auth=(self._api_key, self._api_secret)
         )

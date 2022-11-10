@@ -141,6 +141,43 @@ class _MailgunClient:
             }
         )
 
+    def send_success_message(self, to: str, ad_id: int) -> None:
+        success_mail_text = f"""\
+        Hi there,
+
+        Thank you for posting your vehicle ad on our website.
+        Your ad has been accepted and is now live on our website.
+        You can find it here: {settings.BASE_URL}/vehicle/ads/{ad_id}
+
+        Best regards,
+        The team at {settings.BASE_URL}.
+
+        """
+        self.send(
+            to=to,
+            subject='Your ad has been created',
+            text=success_mail_text
+        )
+        
+    def send_failure_message(self, to: str, ad_id: int) -> None:
+        failure_mail_text = f"""\
+        Hi there,
+
+        Thank you for posting your vehicle ad on our website.
+        Unfortunately, your ad has been rejected.
+        This is because the image you uploaded did not contain any vehicle.
+        check the image and try again.
+
+        Best regards,
+        The team at {settings.BASE_URL}.
+
+        """
+        self.send(
+            to=to,
+            subject='Your ad has been rejected',
+            text=failure_mail_text
+        )
+
 
 
 ObjectStorage = Type[_ObjectStorageClient]

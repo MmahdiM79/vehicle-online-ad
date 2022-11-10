@@ -31,7 +31,11 @@ def new_vehicle_ad(request):
         
         rabbitmq.put(str(new_ad.pk))
 
-        return HttpResponse(status=200)
+        return HttpResponse(
+            status=200,
+            content=f"your ad has been created with id: {new_ad.pk}.\n\
+                      check your email. we will notify you when it is accepted or rejected."
+            )
         
     except Exception as e:
         return HttpResponse(f"Error: {e}", status=500)

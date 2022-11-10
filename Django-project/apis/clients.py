@@ -121,8 +121,26 @@ class _ImaggaClient:
             auth=(self._api_key, self._api_secret)
         )
         return response.json()
-        
-        
+
+
+class _MailgunClient:
+    def __init__(self, api_key: str, domain: str) -> None:
+        self._api_key = api_key
+        self._domain = domain
+
+    def send(self, to: str, subject: str, text: str) -> None:
+        request(
+            method='POST',
+            url=f'https://api.mailgun.net/v3/{self._domain}/messages',
+            auth=('api', self._api_key),
+            data={
+                'from': f'no-reply@{self._domain}',
+                'to': to,
+                'subject': subject,
+                'text': text,
+            }
+        )
+
 
 
 ObjectStorage = Type[_ObjectStorageClient]
@@ -143,4 +161,10 @@ ImaggaClient = Type[_ImaggaClient]
 imagga_client = _ImaggaClient(
     api_key=settings.IMAGGA_API_KEY,
     api_secret=settings.IMAGGA_API_SECRET
+)
+
+MailgunClient = Type[_MailgunClient]
+email_client = _MailgunClient(
+    api_key=settings.MAILGUN_API_KEY,
+    domain=settings.MAILGUN_DOMAIN_NAME
 )

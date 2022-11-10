@@ -1,5 +1,6 @@
 from typing import Type
 from hashlib import sha256
+from requests import request
 
 import boto3
 import botocore
@@ -104,6 +105,24 @@ class _RabbitMQClient:
             return ''
 
 
+class _ImaggaClient:
+    def __init__(self, api_key: str, api_secret: str) -> None:
+        self._api_key = api_key
+        self._api_secret = api_secret
+
+    def get_tags(self, image_url: str) -> dict:
+        response = request(
+            method='GET',
+            url='https://api.imagga.com/v2/tags',
+            params={
+                'image_url': image_url,
+            },
+            auth=(self._api_key, self._api_secret)
+        )
+        return response.json()
+        
+        
+
 
 ObjectStorage = Type[_ObjectStorageClient]
 object_storage = _ObjectStorageClient(
@@ -117,4 +136,10 @@ RabbitMQClient = Type[_RabbitMQClient]
 rabbitmq = _RabbitMQClient(
     amqp_url=settings.RABBITMQ_AMQP_URL,
     queue_name=settings.RABBITMQ_QUEUE_NAME
+)
+
+ImaggaClient = Type[_ImaggaClient]
+imagga_client = _ImaggaClient(
+    api_key=settings.IMAGGA_API_KEY,
+    api_secret=settings.IMAGGA_API_SECRET
 )

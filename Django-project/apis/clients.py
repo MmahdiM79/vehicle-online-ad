@@ -120,7 +120,11 @@ class _ImaggaClient:
             },
             auth=(self._api_key, self._api_secret)
         )
-        return response.json()
+        json_result = response.json()
+        if json_result['status']['type'] == 'error':
+            raise ValueError(json_result['status']['text'])
+
+        return json_result
 
 
 class _MailgunClient:

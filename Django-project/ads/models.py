@@ -20,4 +20,4 @@ class VehicleAD(models.Model):
     category = models.CharField(max_length=1024, null=True, blank=True, default=None)
 
     def __str__(self):
-        return f'< {self.pk} - {self.state} - {self.description} - {self.image} >'
+        return f'<\n\tid: {self.pk},\n\tstate: {self.state},\n\tdescription: {self.description},\n\timage url: {self.image}\n>'

@@ -3,6 +3,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import VehicleAD
+from .tasks import validate_ad
 from apis.clients import (
     object_storage,
     rabbitmq
@@ -30,6 +31,7 @@ def new_vehicle_ad(request):
         new_ad.save()
         
         rabbitmq.put(str(new_ad.pk))
+        validate_ad.delay()
 
         return HttpResponse(
             status=200,

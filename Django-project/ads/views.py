@@ -1,4 +1,4 @@
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
@@ -39,13 +39,33 @@ def new_vehicle_ad(request):
 
         return HttpResponse(
             status=200,
-            content=f"your ad has been created with id: {new_ad.pk}.\n\
+            content=f"your ad has been received.\
                       check your email. we will notify you when it is accepted or rejected."
             )
         
     except Exception as e:
         return HttpResponse(f"Error: {e}", status=500)
 
+
+@require_http_methods(["GET"])
+def get_vehicle_ad(request, ad_id):
+    try:
+        ad = VehicleAD.objects.get(pk=ad_id)
+        json = {
+            "id": ad.pk,
+            "description": ad.description,
+            "state": ad.state,
+            "image": ad.image,
+        }
+        return JsonResponse(
+            status=200,
+            data=json
+        )
+    except VehicleAD.DoesNotExist:
+        return JsonResponse(
+            status=404,
+            content=f"ad with id: {ad_id} does not exist"
+        )
 
 
 def __check_keys(request):

@@ -145,6 +145,23 @@ class _MailgunClient:
             }
         )
 
+    def send_received_ad_message(self, to: str) -> None:
+        get_added_mail_text = f"""\
+        Hi there,
+
+        Thank you for posting your vehicle ad on our website.
+        We have received your ad. It will be reviewed by our team.
+        We will notify you when your ad is accepted or rejected.
+
+        Best regards,
+        The team at {settings.BASE_URL}
+        """
+        self.send(
+            to=to,
+            subject='Your ad has been received',
+            text=get_added_mail_text
+        )
+
     def send_success_message(self, to: str, ad_id: int) -> None:
         success_mail_text = f"""\
         Hi there,
@@ -163,7 +180,7 @@ class _MailgunClient:
             text=success_mail_text
         )
         
-    def send_failure_message(self, to: str, ad_id: int) -> None:
+    def send_failure_message(self, to: str) -> None:
         failure_mail_text = f"""\
         Hi there,
 

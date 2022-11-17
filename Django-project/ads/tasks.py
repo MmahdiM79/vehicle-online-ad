@@ -46,7 +46,11 @@ def validate_ad() -> None:
         else:
             ad.state = VehicleAD.StateAD.REJECTED
             ad.category = None
-            email_client.send_failure_message(ad.email, ad.pk)
+            email_client.send_failure_message(ad.email)
             print(f"ad with id: {ad_id} is rejected")
             ad.save()
 
+
+@shared_task
+def send_received_email(to: str) -> None:
+    email_client.send_received_ad_message(to=to)

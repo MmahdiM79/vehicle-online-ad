@@ -1,12 +1,14 @@
-from django.http.response import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import VehicleAD
-from .tasks import (
+from ads.models import VehicleAD
+from ads.tasks import (
     validate_ad,
     send_received_email,
 )
+
+from apis.responses import ApiResponse
+from apis.constants import HttpStatusCodes
 from apis.clients import (
     object_storage,
     rabbitmq
@@ -37,35 +39,52 @@ def new_vehicle_ad(request):
         send_received_email.delay(request.POST['email'])
         validate_ad.delay()
 
-        return HttpResponse(
-            status=200,
-            content=f"your ad has been received.\
-                      check your email. we will notify you when it is accepted or rejected."
-            )
+        return ApiResponse(
+            status_code=HttpStatusCodes.CREATED,
+            messages=[
+                'your ad has been received.check your email. we will notify you when it is accepted or rejected.'
+            ]
+        ).response()
         
     except Exception as e:
-        return HttpResponse(f"Error: {e}", status=500)
+        return ApiResponse(
+            success=False,
+            status_code=HttpStatusCodes.BAD_REQUEST,
+            messages=[f"Error: {e}",]
+        ).response()
 
 
 @require_http_methods(["GET"])
 def get_vehicle_ad(request, ad_id):
     try:
         ad = VehicleAD.objects.get(pk=ad_id)
-        json = {
-            "id": ad.pk,
-            "description": ad.description,
-            "state": ad.state,
-            "image": ad.image,
-        }
-        return JsonResponse(
-            status=200,
-            data=json
-        )
+
+        if ad.state == VehicleAD.StateAD.REJECTED:
+            return ApiResponse(
+                success=False,
+                status_code=HttpStatusCodes.FORBIDDEN,
+                messages=['unfortunately your ad has been rejected.']
+            ).response()
+
+        elif ad.state == VehicleAD.StateAD.REVIEW:
+            return ApiResponse(
+                success=False,
+                status_code=HttpStatusCodes.NOT_FOUND,
+                messages=['your ad is still under review.']
+            ).response()
+
+        else:
+            return ApiResponse.response_from_objects(
+                key='ad',
+                objects=ad,
+            )
+
     except VehicleAD.DoesNotExist:
-        return JsonResponse(
-            status=404,
-            content=f"ad with id: {ad_id} does not exist"
-        )
+        return ApiResponse(
+            success=False,
+            status_code=HttpStatusCodes.NOT_FOUND,
+            messages=[f"ad with id: {ad_id} does not exist",]
+        ).response()
 
 
 def __check_keys(request):
